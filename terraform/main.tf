@@ -83,45 +83,16 @@ module "secrets" {
 ###############
 
 module "ecs" {
-  source              = "../modules/ecs"
+  source = "../modules/ecs"
 
   name                = "pgadmin"
   execution_role_arn  = module.iam.execution_role_arn
   task_role_arn       = module.iam.task_role_arn
   ecr_repo_url        = module.ecr.repository_url
-  efs_id              = module.efs.id
-  efs_access_point_id = module.efs.access_points["pgadmin"].id
+  efs_id              = module.efs.file_system_id
+  efs_access_point_id = module.efs.access_point_ids_by_name["pgadmin"]
   ecs_sg_id           = module.security_groups.ecs_sg_id
   public_subnet_ids   = var.public_subnet_ids
   pgadmin_secret_arn  = module.secrets.pgadmin_secret_arn
   tags                = local.tags
-}
-
-###################
-# CodeDeploy ECS  #
-###################
-
-module "codedeploy" {
-  source              = "../modules/codedeploy"
-
-  name                = "pgadmin"
-  ecs_cluster_name    = module.ecs.ecs_cluster_id
-  ecs_service_name    = module.ecs.ecs_service_name
-  codedeploy_role_arn = module.iam.codedeploy_role_arn
-  tags                = local.tags
-}
-
-######################
-# VPC Endpoints (future-proof for private ECS)
-######################
-
-module "vpc_endpoints" {
-  source    = "../modules/vpc_endpoints"
-
-  name      = "pgadmin"
-  vpc_id    = var.vpc_id
-  subnet_ids = var.private_subnet_ids
-  sg_id      = module.security_groups.ecs_sg_id
-  region     = var.region
-  tags       = local.tags
 }

@@ -1,96 +1,41 @@
 ###########################
-# ECS Task Execution Role #
+# ECS Execution Role      #
 ###########################
-resource "aws_iam_role" "ecs_task_execution" {
-  name = "${var.name}-task-execution-role"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_assume.json
+resource "aws_iam_role" "execution_role" {
+  name               = "${var.name}-ecs-execution-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
+  tags               = var.tags
 }
 
-data "aws_iam_policy_document" "ecs_task_execution_assume" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
-  role       = aws_iam_role.ecs_task_execution.name
+resource "aws_iam_role_policy_attachment" "execution_role_policy" {
+  role       = aws_iam_role.execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 ###########################
-# ECS Task Role (App)     #
+# ECS Task Role           #
 ###########################
-resource "aws_iam_role" "ecs_task" {
-  name = "${var.name}-task-role"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume.json
+resource "aws_iam_role" "task_role" {
+  name               = "${var.name}-ecs-task-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
+  tags               = var.tags
 }
 
-data "aws_iam_policy_document" "ecs_task_assume" {
+# Example: allow access to Secrets Manager
+resource "aws_iam_role_policy_attachment" "task_secrets_policy" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
+###########################
+# Assume Role Policy Doc  #
+###########################
+data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
-    effect = "Allow"
+    actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
-    actions = ["sts:AssumeRole"]
   }
-}
-
-# Inline policy to allow Secrets Manager + EFS
-resource "aws_iam_role_policy" "ecs_task_inline" {
-  name = "${var.name}-task-inline"
-  role = aws_iam_role.ecs_task.id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect   = "Allow",
-        Action   = ["secretsmanager:GetSecretValue"],
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow",
-        Action   = ["elasticfilesystem:*"],
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-###########################
-# ECS Exec (SSM)          #
-###########################
-resource "aws_iam_role_policy_attachment" "ecs_task_ssm" {
-  role       = aws_iam_role.ecs_task.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-###########################
-# CodeDeploy Role         #
-###########################
-resource "aws_iam_role" "codedeploy" {
-  name = "${var.name}-codedeploy-role"
-  assume_role_policy = data.aws_iam_policy_document.codedeploy_assume.json
-}
-
-data "aws_iam_policy_document" "codedeploy_assume" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["codedeploy.amazonaws.com"]
-    }
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "codedeploy_policy" {
-  role       = aws_iam_role.codedeploy.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForECS"
 }

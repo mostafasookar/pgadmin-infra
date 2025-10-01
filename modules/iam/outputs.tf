@@ -1,14 +1,9 @@
-output "ecs_task_execution_role_arn" {
-  description = "ECS Task Execution Role ARN"
-  value       = aws_iam_role.ecs_task_execution.arn
+output "execution_role_arn" {
+  description = "ARN of the ECS execution role"
+  value       = aws_iam_role.execution_role.arn
 }
 
-output "ecs_task_role_arn" {
-  description = "ECS Task Role ARN"
-  value       = aws_iam_role.ecs_task.arn
-}
-
-output "codedeploy_role_arn" {
-  description = "CodeDeploy Role ARN"
-  value       = aws_iam_role.codedeploy.arn
+output "task_role_arn" {
+  description = "ARN of the ECS task role"
+  value       = aws_iam_role.task_role.arn
 }
