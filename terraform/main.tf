@@ -10,15 +10,13 @@ module "efs" {
   subnet_ids = var.private_subnet_ids
   tags       = local.tags
 
-  # Create an SG that allows NFS (2049) from the VPC CIDR automatically.
   create_security_group = true
 
-  # Define multiple access points so this single EFS can serve more apps.
   access_points = [
     {
       name        = "pgadmin"
       path        = "/pgadmin"
-      uid         = 5050 # adjust if your container user differs
+      uid         = 5050
       gid         = 5050
       permissions = "750"
     },
@@ -30,4 +28,100 @@ module "efs" {
       permissions = "750"
     }
   ]
+}
+
+###############
+# ECR for App #
+###############
+
+module "ecr" {
+  source = "../modules/ecr"
+
+  name = "pgadmin"
+  tags = local.tags
+}
+
+##############
+# IAM Roles  #
+##############
+
+module "iam" {
+  source = "../modules/iam"
+
+  name = "pgadmin"
+  tags = local.tags
+}
+
+###################
+# Security Groups #
+###################
+
+module "security_groups" {
+  source = "../modules/security_groups"
+
+  name           = "pgadmin"
+  vpc_id         = var.vpc_id
+  container_port = 80
+  tags           = local.tags
+}
+
+########################
+# Secrets for pgAdmin  #
+########################
+
+module "secrets" {
+  source = "../modules/secrets"
+
+  name             = "pgadmin"
+  pgadmin_email    = "admin@example.com"
+  pgadmin_password = "SuperSecretPassword!"
+  tags             = local.tags
+}
+
+###############
+# ECS Service #
+###############
+
+module "ecs" {
+  source              = "../modules/ecs"
+
+  name                = "pgadmin"
+  execution_role_arn  = module.iam.execution_role_arn
+  task_role_arn       = module.iam.task_role_arn
+  ecr_repo_url        = module.ecr.repository_url
+  efs_id              = module.efs.id
+  efs_access_point_id = module.efs.access_points["pgadmin"].id
+  ecs_sg_id           = module.security_groups.ecs_sg_id
+  public_subnet_ids   = var.public_subnet_ids
+  pgadmin_secret_arn  = module.secrets.pgadmin_secret_arn
+  tags                = local.tags
+}
+
+###################
+# CodeDeploy ECS  #
+###################
+
+module "codedeploy" {
+  source              = "../modules/codedeploy"
+
+  name                = "pgadmin"
+  ecs_cluster_name    = module.ecs.ecs_cluster_id
+  ecs_service_name    = module.ecs.ecs_service_name
+  codedeploy_role_arn = module.iam.codedeploy_role_arn
+  tags                = local.tags
+}
+
+######################
+# VPC Endpoints (future-proof for private ECS)
+######################
+
+module "vpc_endpoints" {
+  source    = "../modules/vpc_endpoints"
+
+  name      = "pgadmin"
+  vpc_id    = var.vpc_id
+  subnet_ids = var.private_subnet_ids
+  sg_id      = module.security_groups.ecs_sg_id
+  region     = var.region
+  tags       = local.tags
 }
