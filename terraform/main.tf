@@ -96,3 +96,17 @@ module "ecs" {
   pgadmin_secret_arn  = module.secrets.pgadmin_secret_arn
   tags                = local.tags
 }
+
+#####################
+# CodeDeploy Config #
+#####################
+
+module "codedeploy" {
+  source = "../modules/codedeploy"
+
+  name                = "pgadmin"
+  ecs_cluster_name    = module.ecs.ecs_cluster_id
+  ecs_service_name    = module.ecs.ecs_service_name
+  codedeploy_role_arn = module.iam.codedeploy_service_role_arn
+  tags                = local.tags
+}

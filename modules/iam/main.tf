@@ -21,14 +21,27 @@ resource "aws_iam_role" "task_role" {
   tags               = var.tags
 }
 
-# Example: allow access to Secrets Manager
 resource "aws_iam_role_policy_attachment" "task_secrets_policy" {
   role       = aws_iam_role.task_role.name
   policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
 }
 
 ###########################
-# Assume Role Policy Doc  #
+# CodeDeploy Service Role #
+###########################
+resource "aws_iam_role" "codedeploy_service_role" {
+  name               = "${var.name}-codedeploy-service-role"
+  assume_role_policy = data.aws_iam_policy_document.codedeploy_assume.json
+  tags               = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "codedeploy_service_role_policy" {
+  role       = aws_iam_role.codedeploy_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
+}
+
+###########################
+# Assume Role Policy Docs #
 ###########################
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
@@ -39,3 +52,14 @@ data "aws_iam_policy_document" "ecs_task_assume_role" {
     }
   }
 }
+
+data "aws_iam_policy_document" "codedeploy_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["codedeploy.amazonaws.com"]
+    }
+  }
+}
+
