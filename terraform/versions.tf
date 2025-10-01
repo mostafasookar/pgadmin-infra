@@ -5,7 +5,7 @@ terraform {
     bucket         = "pgadmin-terraform-state-test"
     key            = "pgadmin/terraform.tfstate"
     region         = "us-east-1"
-    use_lockfile   = true
+    dynamodb_table = "pgadmin-terraform-locks"
     encrypt        = true
   }
 
