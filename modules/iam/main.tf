@@ -12,6 +12,27 @@ resource "aws_iam_role_policy_attachment" "execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# ✅ Add inline policy so execution role can read pgAdmin secret
+resource "aws_iam_role_policy" "execution_role_secrets" {
+  name = "${var.name}-ecs-execution-secrets"
+
+  role = aws_iam_role.execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "*" # 👉 You can restrict to module.secrets.pgadmin_secret_arn later
+      }
+    ]
+  })
+}
+
 ###########################
 # ECS Task Role           #
 ###########################
@@ -62,4 +83,3 @@ data "aws_iam_policy_document" "codedeploy_assume" {
     }
   }
 }
-
