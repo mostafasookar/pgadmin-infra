@@ -73,8 +73,8 @@ module "secrets" {
   source = "../modules/secrets"
 
   name             = "pgadmin"
-  pgadmin_email    = "admin@example.com"
-  pgadmin_password = "SuperSecretPassword!"
+  pgadmin_email    = var.pgadmin_email
+  pgadmin_password = var.pgadmin_password
   tags             = local.tags
 }
 

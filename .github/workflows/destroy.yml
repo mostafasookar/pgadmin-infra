@@ -9,6 +9,10 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+    env:
+      # Provide secrets so Terraform doesn't complain about required vars
+      TF_VAR_pgadmin_email: ${{ secrets.PGADMIN_EMAIL }}
+      TF_VAR_pgadmin_password: ${{ secrets.PGADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 

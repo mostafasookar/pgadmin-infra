@@ -11,6 +11,10 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+    env:
+      # Inject pgAdmin secrets as Terraform variables
+      TF_VAR_pgadmin_email: ${{ secrets.PGADMIN_EMAIL }}
+      TF_VAR_pgadmin_password: ${{ secrets.PGADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 

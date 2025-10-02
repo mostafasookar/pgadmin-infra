@@ -54,5 +54,16 @@ variable "private_route_table_ids" {
 variable "image_tag" {
   type        = string
   description = "Docker image tag for pgAdmin"
-  default     = ""
+  default     = "latest"
+}
+
+variable "pgadmin_email" {
+  type        = string
+  description = "Default pgAdmin login email"
+}
+
+variable "pgadmin_password" {
+  type        = string
+  description = "Default pgAdmin login password"
+  sensitive   = true
 }
