@@ -96,6 +96,7 @@ module "ecs" {
   private_subnet_ids   = var.private_subnet_ids
   public_subnet_ids    = var.public_subnet_ids
   pgadmin_secret_arn   = module.secrets.pgadmin_secret_arn
+  region               = var.region
   tags                 = local.tags
 }
 
@@ -114,17 +115,50 @@ module "alb" {
   tags              = local.tags
 }
 
-#####################
-# CodeDeploy Config #
-#####################
+###################################
+# ECS Autoscaling for pgAdmin     #
+###################################
 
-module "codedeploy" {
-  source              = "../modules/codedeploy"
-  name                = "pgadmin"
-  ecs_cluster_name    = module.ecs.ecs_cluster_name
-  ecs_service_name    = module.ecs.ecs_service_name
-  codedeploy_role_arn = module.iam.codedeploy_service_role_arn
-  alb_listener_arn    = module.alb.listener_arn
+module "pgadmin_autoscaling" {
+  source       = "../modules/autoscaling"
+  name         = "pgadmin"
+  cluster_name = module.ecs.ecs_cluster_name
+  service_name = module.ecs.ecs_service_name
+
+  min_capacity        = 1
+  max_capacity        = 3
+  cpu_target_value    = 70
+  memory_target_value = 75
   tags                = local.tags
 }
 
+###################################
+# CloudWatch alerts for pgAdmin   #
+###################################
+
+module "pgadmin_cloudwatch" {
+  source       = "../modules/cloudwatch"
+  name         = "pgadmin"
+  cluster_name = module.ecs.ecs_cluster_name
+  service_name = module.ecs.ecs_service_name
+  alert_email  = "mm_soso33@yahoo.com"
+
+  cpu_alarm_threshold    = 80
+  memory_alarm_threshold = 85
+  tags                   = local.tags
+}
+
+######################
+# VPC Endpoints (VPCE)
+######################
+module "vpc_endpoints" {
+  source = "../modules/vpc_endpoints"
+
+  name                    = "pgadmin"
+  vpc_id                  = var.vpc_id
+  region                  = var.region
+  subnet_ids              = var.private_subnet_ids
+  sg_id                   = null # set to module.security_groups.ecs_sg_id if you want to reuse ECS SG; else module creates one
+  private_route_table_ids = var.private_route_table_ids
+  tags                    = local.tags
+}

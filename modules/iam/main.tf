@@ -12,10 +12,9 @@ resource "aws_iam_role_policy_attachment" "execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# ✅ Add inline policy so execution role can read pgAdmin secret
+# Allow execution role to read Secrets Manager
 resource "aws_iam_role_policy" "execution_role_secrets" {
   name = "${var.name}-ecs-execution-secrets"
-
   role = aws_iam_role.execution_role.id
 
   policy = jsonencode({
@@ -27,7 +26,7 @@ resource "aws_iam_role_policy" "execution_role_secrets" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = "*" # 👉 You can restrict to module.secrets.pgadmin_secret_arn later
+        Resource = "*" # TODO: restrict to pgadmin secret ARN if you want
       }
     ]
   })
@@ -45,6 +44,12 @@ resource "aws_iam_role" "task_role" {
 resource "aws_iam_role_policy_attachment" "task_secrets_policy" {
   role       = aws_iam_role.task_role.name
   policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
+# Attach ECS Exec permissions (SSM)
+resource "aws_iam_role_policy_attachment" "task_ssm_policy" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 ###########################

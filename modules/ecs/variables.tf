@@ -83,3 +83,8 @@ variable "private_subnet_ids" {
   type        = list(string)
   description = "Private subnet IDs for ECS tasks"
 }
+
+variable "region" {
+  type        = string
+  description = "AWS region for ECS resources (used in log group, etc.)"
+}

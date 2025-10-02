@@ -9,19 +9,26 @@ variable "vpc_id" {
   description = "VPC ID"
 }
 
+variable "region" {
+  type        = string
+  description = "AWS region"
+}
+
 variable "subnet_ids" {
   type        = list(string)
-  description = "Subnets for endpoints (use private subnets usually)"
+  description = "Private subnets for interface endpoints"
 }
 
 variable "sg_id" {
   type        = string
-  description = "Security group to attach to endpoints"
+  default     = null
+  description = "Optional SG for endpoints; if null, one is created"
 }
 
-variable "region" {
-  type        = string
-  description = "Region"
+variable "private_route_table_ids" {
+  type        = list(string)
+  default     = []
+  description = "Private route table IDs for S3 Gateway endpoint"
 }
 
 variable "tags" {

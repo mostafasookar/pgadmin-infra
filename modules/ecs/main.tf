@@ -8,6 +8,15 @@ resource "aws_ecs_cluster" "this" {
 }
 
 ##############################
+# CloudWatch Logs            #
+##############################
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/${var.name}"
+  retention_in_days = 14
+  tags              = local.common_tags
+}
+
+##############################
 # Task Definition for pgAdmin #
 ##############################
 
@@ -42,13 +51,21 @@ resource "aws_ecs_task_definition" "this" {
       secrets = [
         {
           name      = "PGADMIN_DEFAULT_EMAIL"
-          valueFrom = "${var.pgadmin_secret_arn}:PGADMIN_DEFAULT_EMAIL::"
+          valueFrom = var.pgadmin_secret_arn
         },
         {
-          name  = "PGADMIN_DEFAULT_PASSWORD"
-          valueFrom = "${var.pgadmin_secret_arn}:PGADMIN_DEFAULT_PASSWORD::"
+          name      = "PGADMIN_DEFAULT_PASSWORD"
+          valueFrom = var.pgadmin_secret_arn
         }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.ecs.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
     }
   ])
 
@@ -78,16 +95,23 @@ resource "aws_ecs_service" "this" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.private_subnet_ids # ✅ fixed: now declared in variables.tf
+    subnets          = var.private_subnet_ids
     assign_public_ip = false
     security_groups  = [var.ecs_sg_id]
   }
 
   deployment_controller {
-    type = "ECS" # ✅ keep ECS instead of CODE_DEPLOY since ALB was blocked in your infra
+    type = "ECS"
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
   }
 
   enable_execute_command = true
+
+  depends_on = [var.alb_target_group_arn]
+
   tags = local.common_tags
 }
-

@@ -44,3 +44,9 @@ variable "tags" {
   type    = map(string)
   default = { Project = "pgadmin" }
 }
+
+variable "private_route_table_ids" {
+  type        = list(string)
+  default     = []
+  description = "Private route table IDs for S3 gateway endpoint (optional)"
+}
