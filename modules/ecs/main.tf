@@ -58,6 +58,12 @@ resource "aws_ecs_task_definition" "this" {
           valueFrom = "${var.pgadmin_secret_arn}:PGADMIN_DEFAULT_PASSWORD::"
         }
       ]
+      environment = [
+        {
+          name  = "PGADMIN_LISTEN_PORT"
+          value = "80"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -72,8 +78,8 @@ resource "aws_ecs_task_definition" "this" {
   volume {
     name = "efs-volume"
     efs_volume_configuration {
-      file_system_id          = var.efs_id
-      transit_encryption      = "ENABLED"
+      file_system_id     = var.efs_id
+      transit_encryption = "ENABLED"
       authorization_config {
         access_point_id = var.efs_access_point_id
       }
@@ -100,7 +106,7 @@ resource "aws_ecs_service" "this" {
     security_groups  = [var.ecs_sg_id]
   }
 
-  # 👇 Attach ECS tasks to ALB target group
+  # Attach ECS tasks to ALB target group
   load_balancer {
     target_group_arn = var.alb_target_group_arn
     container_name   = "pgadmin"
