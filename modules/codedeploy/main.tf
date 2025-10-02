@@ -23,6 +23,17 @@ resource "aws_codedeploy_deployment_group" "this" {
     service_name = var.ecs_service_name
   }
 
+  load_balancer_info {
+    target_group_pair_info {
+      target_group {
+        name = "${var.name}-tg"
+      }
+      prod_traffic_route {
+        listener_arns = [var.alb_listener_arn]
+      }
+    }
+  }
+
   auto_rollback_configuration {
     enabled = true
     events  = ["DEPLOYMENT_FAILURE"]

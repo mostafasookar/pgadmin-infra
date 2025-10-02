@@ -73,3 +73,13 @@ variable "tags" {
   default     = {}
   description = "Common tags"
 }
+
+variable "alb_target_group_arn" {
+  type        = string
+  description = "ALB Target Group ARN"
+}
+
+variable "private_subnet_ids" {
+  type        = list(string)
+  description = "Private subnet IDs for ECS tasks"
+}

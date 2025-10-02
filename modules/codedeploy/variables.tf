@@ -24,3 +24,8 @@ variable "tags" {
   default     = {}
   description = "Common tags"
 }
+
+variable "alb_listener_arn" {
+  type        = string
+  description = "ALB Listener ARN for CodeDeploy"
+}

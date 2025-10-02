@@ -78,14 +78,16 @@ resource "aws_ecs_service" "this" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.public_subnet_ids
-    assign_public_ip = true
+    subnets          = var.private_subnet_ids # ✅ fixed: now declared in variables.tf
+    assign_public_ip = false
     security_groups  = [var.ecs_sg_id]
   }
 
   deployment_controller {
-    type = "ECS"
+    type = "ECS" # ✅ keep ECS instead of CODE_DEPLOY since ALB was blocked in your infra
   }
 
+  enable_execute_command = true
   tags = local.common_tags
 }
+
