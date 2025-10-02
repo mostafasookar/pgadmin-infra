@@ -51,11 +51,11 @@ resource "aws_ecs_task_definition" "this" {
       secrets = [
         {
           name      = "PGADMIN_DEFAULT_EMAIL"
-          valueFrom = var.pgadmin_secret_arn
+          valueFrom = "${var.pgadmin_secret_arn}:PGADMIN_DEFAULT_EMAIL::"
         },
         {
           name      = "PGADMIN_DEFAULT_PASSWORD"
-          valueFrom = var.pgadmin_secret_arn
+          valueFrom = "${var.pgadmin_secret_arn}:PGADMIN_DEFAULT_PASSWORD::"
         }
       ]
       logConfiguration = {
