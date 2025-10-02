@@ -85,19 +85,46 @@ module "secrets" {
 module "ecs" {
   source = "../modules/ecs"
 
-  name                = "pgadmin"
-  execution_role_arn  = module.iam.execution_role_arn
-  task_role_arn       = module.iam.task_role_arn
-  ecr_repo_url        = module.ecr.repository_url
-  efs_id              = module.efs.file_system_id
-  efs_access_point_id = module.efs.access_point_ids_by_name["pgadmin"]
-  ecs_sg_id           = module.security_groups.ecs_sg_id
-  public_subnet_ids   = var.public_subnet_ids
-  pgadmin_secret_arn  = module.secrets.pgadmin_secret_arn
-  tags                = local.tags
+  name                 = "pgadmin"
+  execution_role_arn   = module.iam.execution_role_arn
+  task_role_arn        = module.iam.task_role_arn
+  ecr_repo_url         = module.ecr.repository_url
+  efs_id               = module.efs.file_system_id
+  efs_access_point_id  = module.efs.access_point_ids_by_name["pgadmin"]
+  ecs_sg_id            = module.security_groups.ecs_sg_id
+  alb_target_group_arn = module.alb.target_group_arn
+  private_subnet_ids   = var.private_subnet_ids
+  public_subnet_ids    = var.public_subnet_ids
+  pgadmin_secret_arn   = module.secrets.pgadmin_secret_arn
+  tags                 = local.tags
+}
+
+###################
+# Application LB  #
+###################
+
+module "alb" {
+  source = "../modules/alb"
+
+  name              = "pgadmin"
+  vpc_id            = var.vpc_id
+  public_subnet_ids = var.public_subnet_ids
+  sg_id             = module.security_groups.ecs_sg_id
+  container_port    = 80
+  tags              = local.tags
 }
 
 #####################
 # CodeDeploy Config #
 #####################
+
+module "codedeploy" {
+  source              = "../modules/codedeploy"
+  name                = "pgadmin"
+  ecs_cluster_name    = module.ecs.ecs_cluster_name
+  ecs_service_name    = module.ecs.ecs_service_name
+  codedeploy_role_arn = module.iam.codedeploy_service_role_arn
+  alb_listener_arn    = module.alb.listener_arn
+  tags                = local.tags
+}
 
