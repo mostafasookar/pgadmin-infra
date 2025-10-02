@@ -47,8 +47,8 @@ variable "tags" {
 
 variable "private_route_table_ids" {
   type        = list(string)
-  default     = []
-  description = "Private route table IDs for S3 gateway endpoint (optional)"
+  default     = ["rtb-04eae072f5cad1ef9"] # Private-Route
+  description = "Private route table IDs for S3 gateway endpoint (required for ECS to pull from ECR)"
 }
 
 variable "image_tag" {

@@ -11,6 +11,10 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+    env:
+      # Inject pgAdmin secrets as Terraform variables for validation/plan
+      TF_VAR_pgadmin_email: ${{ secrets.PGADMIN_EMAIL }}
+      TF_VAR_pgadmin_password: ${{ secrets.PGADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -49,6 +53,10 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+    env:
+      # Inject pgAdmin secrets as Terraform variables
+      TF_VAR_pgadmin_email: ${{ secrets.PGADMIN_EMAIL }}
+      TF_VAR_pgadmin_password: ${{ secrets.PGADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -82,6 +90,10 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+    env:
+      # Provide secrets so Terraform doesn't complain about required vars
+      TF_VAR_pgadmin_email: ${{ secrets.PGADMIN_EMAIL }}
+      TF_VAR_pgadmin_password: ${{ secrets.PGADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -204,8 +216,8 @@ module "secrets" {
   source = "../modules/secrets"
 
   name             = "pgadmin"
-  pgadmin_email    = "admin@example.com"
-  pgadmin_password = "SuperSecretPassword!"
+  pgadmin_email    = var.pgadmin_email
+  pgadmin_password = var.pgadmin_password
   tags             = local.tags
 }
 
@@ -369,6 +381,17 @@ variable "image_tag" {
   type        = string
   description = "Docker image tag for pgAdmin"
   default     = "latest"
+}
+
+variable "pgadmin_email" {
+  type        = string
+  description = "Default pgAdmin login email"
+}
+
+variable "pgadmin_password" {
+  type        = string
+  description = "Default pgAdmin login password"
+  sensitive   = true
 }
 
 ### terraform/versions.tf ###
