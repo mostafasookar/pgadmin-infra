@@ -32,7 +32,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode([
     {
       name      = "pgadmin"
-      image     = "${var.ecr_repo_url}:latest"
+      image     = "${var.ecr_repo_url}:${var.image_tag}"
       essential = true
       portMappings = [
         {

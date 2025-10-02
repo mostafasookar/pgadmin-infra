@@ -88,3 +88,8 @@ variable "region" {
   type        = string
   description = "AWS region for ECS resources (used in log group, etc.)"
 }
+
+variable "image_tag" {
+  type        = string
+  description = "Tag of the Docker image to deploy"
+}

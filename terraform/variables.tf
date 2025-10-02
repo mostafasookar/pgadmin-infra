@@ -50,3 +50,9 @@ variable "private_route_table_ids" {
   default     = []
   description = "Private route table IDs for S3 gateway endpoint (optional)"
 }
+
+variable "image_tag" {
+  type        = string
+  description = "Docker image tag for pgAdmin"
+  default     = ""
+}

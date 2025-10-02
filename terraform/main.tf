@@ -89,6 +89,7 @@ module "ecs" {
   execution_role_arn   = module.iam.execution_role_arn
   task_role_arn        = module.iam.task_role_arn
   ecr_repo_url         = module.ecr.repository_url
+  image_tag            = var.image_tag
   efs_id               = module.efs.file_system_id
   efs_access_point_id  = module.efs.access_point_ids_by_name["pgadmin"]
   ecs_sg_id            = module.security_groups.ecs_sg_id
