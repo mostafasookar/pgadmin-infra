@@ -26,11 +26,11 @@ resource "aws_lb_target_group" "this" {
   vpc_id      = var.vpc_id
 
   health_check {
-    path                = "/"
+    path                = "/misc/ping"
     protocol            = "HTTP"
-    matcher             = "200-399"
+    matcher             = "200-499"
     interval            = 30
-    timeout             = 5
+    timeout             = 10
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }

@@ -100,6 +100,13 @@ resource "aws_ecs_service" "this" {
     security_groups  = [var.ecs_sg_id]
   }
 
+  # 👇 Attach ECS tasks to ALB target group
+  load_balancer {
+    target_group_arn = var.alb_target_group_arn
+    container_name   = "pgadmin"
+    container_port   = var.container_port
+  }
+
   deployment_controller {
     type = "ECS"
   }
@@ -110,8 +117,6 @@ resource "aws_ecs_service" "this" {
   }
 
   enable_execute_command = true
-
-  depends_on = [var.alb_target_group_arn]
 
   tags = local.common_tags
 }
