@@ -13,6 +13,24 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = var.alert_email
 }
 
+# 👇 New: SNS Policy for CloudWatch → SNS publishing
+resource "aws_sns_topic_policy" "alerts_policy" {
+  arn    = aws_sns_topic.alerts.arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudwatch.amazonaws.com"
+        }
+        Action   = "SNS:Publish"
+        Resource = aws_sns_topic.alerts.arn
+      }
+    ]
+  })
+}
+
 # Alarm for high CPU
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   alarm_name          = "${var.name}-cpu-high"
